@@ -50,7 +50,7 @@ public class RijksServiceTest {
         RijksService service = new RijksServiceFactory().getService();
 
         //when
-        ArtObjects artObjs = service.getField(apiKey.get(), "Nachtwacht",5).blockingGet();
+        ArtObjects artObjs = service.getField(apiKey.get(), "Nachtwacht", 5).blockingGet();
 
         //then
         assertNotNull(artObjs.artObjects[0].title);
