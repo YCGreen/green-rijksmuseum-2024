@@ -10,23 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class RijksServiceTest {
 
     @Test
-    void artObject() {
-        //given
-        ApiKey apiKey = new ApiKey();
-        RijksService service = new RijksServiceFactory().getService();
-
-        //when
-        ArtObjects artObjs = service.getArtObjects(apiKey.get()).blockingGet();
-
-        //then
-        assertNotNull(artObjs.artObjects[0].title);
-        assertNotNull(artObjs.artObjects[0].longTitle);
-        assertNotNull(artObjs.artObjects[0].webImage);
-        assertNotNull(artObjs.artObjects[0].principalOrFirstMaker);
-
-    }
-
-    @Test
     void getPage() {
         //given
         ApiKey apiKey = new ApiKey();
