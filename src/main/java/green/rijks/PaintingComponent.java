@@ -11,14 +11,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 
+//interface adapted from https://www.baeldung.com/java-multiple-keys-map
+//maybe a bad idea let's find out
+interface MultiKeyWrapper {}
+
+record IntegerMultiKeyWrapper(Integer value) implements MultiKeyWrapper {}
+record StringMultiKeyWrapper(String value) implements MultiKeyWrapper {} //use for query requests
 
 public class PaintingComponent extends JComponent {
-    private static final int IMG_CT = 10;
     static RijksService service;
     static ApiKey key;
     Map<Integer, JLabel[]> pages = new ConcurrentHashMap<>();
@@ -35,6 +39,8 @@ public class PaintingComponent extends JComponent {
                 .subscribe(
                         (response) -> setUrls(response, pageNum),
                         Throwable::printStackTrace);
+      /*  ArtObjects artObjs = service.getPage(key.get(), pageNum).blockingGet(); --works
+        setUrls(artObjs, pageNum); */
     }
 
     private void sendQueryRequest(String query, int pageNum) {
@@ -46,16 +52,11 @@ public class PaintingComponent extends JComponent {
                         Throwable::printStackTrace);
     }
 
-
     private void setUrls(ArtObjects artObjs, int pageNum) {
         JLabel[] label = new JLabel[artObjs.artObjects.length];
+
         for (int i = 0; i < label.length; i++) {
             label[i] = new JLabel();
-        }
-
-        for (int i = 0; i < label.length; i++) {
-
-
             try {
                 URL url = new URL(artObjs.artObjects[i].webImage.url);
                 Image img = ImageIO.read(url);
@@ -67,23 +68,15 @@ public class PaintingComponent extends JComponent {
             }
         }
 
+      //  pages.put(new IntegerMultiKeyWrapper(pageNum), label); -- add type to method variables?
         pages.put(pageNum, label);
     }
 
     public JLabel[] getBlankRequest(int pageNum) {
-        if(pages.containsKey(pageNum)) {
-            return pages.get(pageNum);
+        if (!pages.containsKey(pageNum)) {
+            sendBlankRequest(pageNum);
         }
-
-        sendBlankRequest(pageNum);
         return pages.get(pageNum);
     }
-
-  /*  public JLabel[] getQueryRequest(String query) {
-        setPageNum(1);
-        sendQueryRequest(query);
-
-    }
-*/
 
 }
