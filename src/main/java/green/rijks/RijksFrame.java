@@ -1,14 +1,26 @@
 package green.rijks;
 
 import com.andrewoid.ApiKey;
+import green.rijks.json.ArtObjects;
+import hu.akarnokd.rxjava3.swing.SwingSchedulers;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.net.URL;
 
 public class RijksFrame extends JFrame  {
 
-    private ApiKey apiKey = new ApiKey();
+    private ApiKey key = new ApiKey();
+    private final RijksService service = new RijksServiceFactory().getService();
     private int currPage = 1;
+    private ArtObjects artObjs;
+    PaintingComponent paintingComponent = new PaintingComponent();
 
     public RijksFrame() {
         setSize(800, 600);
@@ -19,21 +31,49 @@ public class RijksFrame extends JFrame  {
         main.setLayout(new BorderLayout());
         setContentPane(main);
 
+        JButton next = new JButton("Next");
+        JButton prev = new JButton("Previous");
+
+        JPanel prevPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel nextPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        prevPanel.add(prev);
+        nextPanel.add(next);
+
+        main.add(prevPanel, BorderLayout.WEST);
+        main.add(nextPanel, BorderLayout.EAST);
+
         JTextField search = new JTextField();
         main.add(search, BorderLayout.PAGE_START);
 
-        PaintingComponent paintingComponent = new PaintingComponent();
-        main.add(paintingComponent);
+        main.add(paintingComponent, BorderLayout.CENTER);
 
-        JLabel[] label = paintingComponent.getBlankRequest(1);
+        next.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Disposable disposable = service.getPage(key.get(), ++currPage)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(SwingSchedulers.edt())
+                        .subscribe(
+                                (response) -> handleResponse(response),
+                                Throwable::printStackTrace);
+            }
+        });
 
-        GridLayout layout = new GridLayout(4, 3);
+        prev.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Disposable disposable = service.getPage(key.get(), --currPage)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(SwingSchedulers.edt())
+                        .subscribe(
+                                (response) -> handleResponse(response),
+                                Throwable::printStackTrace);
+            }
+        });
 
-        paintingComponent.setLayout(layout);
 
-        for (int i = 0; i < label.length; i++) {
-            paintingComponent.add(label[i]);
-        }
+
+
 
       /*  DocumentListener docListener = new DocumentListener() {
             @Override
@@ -58,11 +98,45 @@ public class RijksFrame extends JFrame  {
 
 
     }
+
+    private void handleResponse(ArtObjects artObjs) {
+        this.artObjs = artObjs;
+        setImages(extractImages());
+    }
+
+    private JLabel[] extractImages() {
+        JLabel[] label = new JLabel[artObjs.artObjects.length];
+
+        for (int i = 0; i < label.length; i++) {
+            label[i] = new JLabel();
+            try {
+                URL url = new URL(artObjs.artObjects[i].webImage.url);
+                Image img = ImageIO.read(url);
+                ImageIcon imgIcon = new ImageIcon(img
+                        .getScaledInstance(200, -1, Image.SCALE_DEFAULT));
+                label[i].setIcon(imgIcon);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return label;
+    }
+
+    private void setImages(JLabel[] images) {
+        for (int i = 0; i < images.length; i++) {
+            paintingComponent.add(images[i]);
+        }
+    }
+
+
 }
+
+
 
 class Main {
     public static void main(String[] args) {
         new RijksFrame().setVisible(true);
-       // System.out.println(new PaintingComponent().getBlankRequest(3));
+      //  System.out.println(new PaintingComponent().getBlankRequest(3));
     }
 }
