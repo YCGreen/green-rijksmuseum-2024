@@ -11,6 +11,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.net.URL;
 
@@ -20,7 +22,7 @@ public class RijksFrame extends JFrame  {
     private final RijksService service = new RijksServiceFactory().getService();
     private int currPage = 1;
     private ArtObjects artObjs;
-    PaintingComponent paintingComponent = new PaintingComponent();
+    JPanel paintingComponent = new JPanel();
 
     public RijksFrame() {
         setSize(800, 600);
@@ -46,6 +48,8 @@ public class RijksFrame extends JFrame  {
         main.add(search, BorderLayout.PAGE_START);
 
         main.add(paintingComponent, BorderLayout.CENTER);
+
+        onStart();
 
         next.addActionListener(new ActionListener() {
             @Override
@@ -99,9 +103,42 @@ public class RijksFrame extends JFrame  {
 
     }
 
+    private void onStart() {
+        Disposable disposable = service.getPage(key.get(), 1)
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .subscribe(
+                        (response) -> handleResponse(response),
+                        Throwable::printStackTrace);
+    }
+
     private void handleResponse(ArtObjects artObjs) {
-        this.artObjs = artObjs;
-        setImages(extractImages());
+    //    this.artObjs = artObjs;
+        JLabel[] label = new JLabel[artObjs.artObjects.length];
+
+        for (int i = 0; i < label.length; i++) {
+            label[i] = new JLabel();
+            try {
+                URL url = new URL(artObjs.artObjects[i].webImage.url);
+                Image img = ImageIO.read(url);
+                ImageIcon imgIcon = new ImageIcon(img
+                        .getScaledInstance(200, -1, Image.SCALE_DEFAULT));
+                label[i].setIcon(imgIcon);
+                String title = artObjs.artObjects[i].title + "\n" + artObjs.artObjects[i].principalOrFirstMaker;
+                label[i].setToolTipText(title);
+                label[i].addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        RijksFrameSingle sinFrame = new RijksFrameSingle(img, title);
+                        sinFrame.setVisible(true);
+                    }
+                });
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        setImages(label);
     }
 
     private JLabel[] extractImages() {
