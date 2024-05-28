@@ -23,6 +23,7 @@ public class RijksFrame extends JFrame  {
     private ApiKey key = new ApiKey();
     private final RijksService service = new RijksServiceFactory().getService();
     private int currPage = 1;
+    private int currPageQuery = 1;
     private ArtObjects artObjs;
     private JPanel paintingComponent = new JPanel();
 
@@ -51,29 +52,20 @@ public class RijksFrame extends JFrame  {
 
         main.add(paintingComponent, BorderLayout.CENTER);
 
-        onStart();
+        getPage(currPage);
 
         next.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Disposable disposable = service.getPage(key.get(), ++currPage)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(SwingSchedulers.edt())
-                        .subscribe(
-                                (response) -> handleResponse(response),
-                                Throwable::printStackTrace);
+                getPageField(search.getText(), 1);
+
             }
         });
 
         prev.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Disposable disposable = service.getPage(key.get(), --currPage)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(SwingSchedulers.edt())
-                        .subscribe(
-                                (response) -> handleResponse(response),
-                                Throwable::printStackTrace);
+                getPageField(search.getText(), -1);
             }
         });
 
@@ -81,12 +73,8 @@ public class RijksFrame extends JFrame  {
         DocumentListener docListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                Disposable disposable = service.getField(key.get(), search.getText(), --currPage)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(SwingSchedulers.edt())
-                        .subscribe(
-                                (response) -> handleResponse(response),
-                                Throwable::printStackTrace);
+                currPageQuery = 1;
+                getField(search.getText(), currPageQuery);
             }
 
             @Override
@@ -102,12 +90,30 @@ public class RijksFrame extends JFrame  {
 
     }
 
-    private void onStart() {
-        Disposable disposable = service.getPage(key.get(), currPage)
+    private void getPageField(String search, int sign) {
+        if(search == null) {
+            getPage(currPage += sign);
+        }
+        else {
+            getField(search, currPageQuery += sign);
+        }
+    }
+
+    private void getPage(int pageNo) {
+        Disposable disposable = service.getPage(key.get(), pageNo)
                 .subscribeOn(Schedulers.io())
                 .observeOn(SwingSchedulers.edt())
                 .subscribe(
-                        (response) -> handleResponse(response),
+                        this::handleResponse,
+                        Throwable::printStackTrace);
+    }
+
+    private void getField(String search, int pageNo) {
+        Disposable disposable = service.getField(key.get(), search, pageNo)
+                .subscribeOn(Schedulers.io())
+                .observeOn(SwingSchedulers.edt())
+                .subscribe(
+                        this::handleResponse,
                         Throwable::printStackTrace);
     }
 
