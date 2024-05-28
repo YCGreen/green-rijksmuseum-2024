@@ -141,11 +141,3 @@ public class RijksFrame extends JFrame  {
     }
 
 }
-
-
-
-class Main {
-    public static void main(String[] args) {
-        new RijksFrame().setVisible(true);
-    }
-}
