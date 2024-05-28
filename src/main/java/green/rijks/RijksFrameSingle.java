@@ -20,11 +20,13 @@ public class RijksFrameSingle extends JFrame {
 
         JLabel label = new JLabel();
 
+        JScrollPane scrollPane = new JScrollPane(label);
+
         ImageIcon imgIcon = new ImageIcon(img
                 .getScaledInstance(800, -1, Image.SCALE_DEFAULT));
         label.setIcon(imgIcon);
 
-        main.add(label);
+        main.add(scrollPane);
 
     }
 }

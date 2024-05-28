@@ -8,6 +8,8 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,7 +24,7 @@ public class RijksFrame extends JFrame  {
     private final RijksService service = new RijksServiceFactory().getService();
     private int currPage = 1;
     private ArtObjects artObjs;
-    JPanel paintingComponent = new JPanel();
+    private JPanel paintingComponent = new JPanel();
 
     public RijksFrame() {
         setSize(800, 600);
@@ -76,15 +78,15 @@ public class RijksFrame extends JFrame  {
         });
 
 
-
-
-
-      /*  DocumentListener docListener = new DocumentListener() {
+        DocumentListener docListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                if(paintingComponent.searchPainting(search.getText(), 0)) {
-                    //write something to update urls jlabels
-                }
+                Disposable disposable = service.getField(key.get(), search.getText(), --currPage)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(SwingSchedulers.edt())
+                        .subscribe(
+                                (response) -> handleResponse(response),
+                                Throwable::printStackTrace);
             }
 
             @Override
@@ -96,15 +98,12 @@ public class RijksFrame extends JFrame  {
             public void changedUpdate(DocumentEvent e) {
 
             }
-        }; */
-
-      //  search.getDocument().addDocumentListener(docListener);
-
+        };
 
     }
 
     private void onStart() {
-        Disposable disposable = service.getPage(key.get(), 1)
+        Disposable disposable = service.getPage(key.get(), currPage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(SwingSchedulers.edt())
                 .subscribe(
@@ -113,7 +112,7 @@ public class RijksFrame extends JFrame  {
     }
 
     private void handleResponse(ArtObjects artObjs) {
-    //    this.artObjs = artObjs;
+        paintingComponent.removeAll();
         JLabel[] label = new JLabel[artObjs.artObjects.length];
 
         for (int i = 0; i < label.length; i++) {
@@ -133,39 +132,13 @@ public class RijksFrame extends JFrame  {
                         sinFrame.setVisible(true);
                     }
                 });
+                paintingComponent.add(label[i]);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
 
-        setImages(label);
     }
-
-    private JLabel[] extractImages() {
-        JLabel[] label = new JLabel[artObjs.artObjects.length];
-
-        for (int i = 0; i < label.length; i++) {
-            label[i] = new JLabel();
-            try {
-                URL url = new URL(artObjs.artObjects[i].webImage.url);
-                Image img = ImageIO.read(url);
-                ImageIcon imgIcon = new ImageIcon(img
-                        .getScaledInstance(200, -1, Image.SCALE_DEFAULT));
-                label[i].setIcon(imgIcon);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return label;
-    }
-
-    private void setImages(JLabel[] images) {
-        for (int i = 0; i < images.length; i++) {
-            paintingComponent.add(images[i]);
-        }
-    }
-
 
 }
 
@@ -174,6 +147,5 @@ public class RijksFrame extends JFrame  {
 class Main {
     public static void main(String[] args) {
         new RijksFrame().setVisible(true);
-      //  System.out.println(new PaintingComponent().getBlankRequest(3));
     }
 }
