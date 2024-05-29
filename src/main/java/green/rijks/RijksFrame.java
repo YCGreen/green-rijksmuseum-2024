@@ -88,6 +88,8 @@ public class RijksFrame extends JFrame  {
             }
         };
 
+        search.getDocument().addDocumentListener(docListener);
+
     }
 
     private void getPageField(JTextField search, int sign) {
@@ -122,25 +124,28 @@ public class RijksFrame extends JFrame  {
 
         for (int i = 0; i < label.length; i++) {
             label[i] = new JLabel();
-            try {
-                URL url = new URL(artObjs.artObjects[i].webImage.url);
-                Image img = ImageIO.read(url);
-                ImageIcon imgIcon = new ImageIcon(img
-                        .getScaledInstance(200, -1, Image.SCALE_DEFAULT));
-                label[i].setIcon(imgIcon);
-                String title = artObjs.artObjects[i].title + "\n" + artObjs.artObjects[i].principalOrFirstMaker;
-                label[i].setToolTipText(title);
-                label[i].addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        RijksFrameSingle sinFrame = new RijksFrameSingle(img, title);
-                        sinFrame.setVisible(true);
-                    }
-                });
-                paintingComponent.add(label[i]);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if(artObjs.artObjects[i].webImage != null) {
+                try {
+                    URL url = new URL(artObjs.artObjects[i].webImage.url);
+                    Image img = ImageIO.read(url);
+                    ImageIcon imgIcon = new ImageIcon(img
+                            .getScaledInstance(200, -1, Image.SCALE_DEFAULT));
+                    label[i].setIcon(imgIcon);
+                    String title = artObjs.artObjects[i].title + "\n" + artObjs.artObjects[i].principalOrFirstMaker;
+                    label[i].setToolTipText(title);
+                    label[i].addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            RijksFrameSingle sinFrame = new RijksFrameSingle(img, title);
+                            sinFrame.setVisible(true);
+                        }
+                    });
+                    paintingComponent.add(label[i]);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
+
         }
 
     }
