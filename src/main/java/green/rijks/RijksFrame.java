@@ -124,7 +124,7 @@ public class RijksFrame extends JFrame  {
 
         for (int i = 0; i < label.length; i++) {
             label[i] = new JLabel();
-            if(artObjs.artObjects[i].webImage != null) {
+            if (artObjs.artObjects[i].webImage != null) {
                 try {
                     URL url = new URL(artObjs.artObjects[i].webImage.url);
                     Image img = ImageIO.read(url);
