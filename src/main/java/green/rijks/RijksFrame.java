@@ -24,7 +24,6 @@ public class RijksFrame extends JFrame  {
     private final RijksService service = new RijksServiceFactory().getService();
     private int currPage = 1;
     private int currPageQuery = 1;
-    private ArtObjects artObjs;
     private JPanel paintingComponent = new JPanel();
 
     public RijksFrame() {
@@ -36,19 +35,18 @@ public class RijksFrame extends JFrame  {
         main.setLayout(new BorderLayout());
         setContentPane(main);
 
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout());
+
         JButton next = new JButton("Next");
         JButton prev = new JButton("Previous");
-
-        JPanel prevPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JPanel nextPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        prevPanel.add(prev);
-        nextPanel.add(next);
-
-        main.add(prevPanel, BorderLayout.WEST);
-        main.add(nextPanel, BorderLayout.EAST);
-
         JTextField search = new JTextField();
-        main.add(search, BorderLayout.PAGE_START);
+
+        topPanel.add(prev, BorderLayout.WEST);
+        topPanel.add(next, BorderLayout.EAST);
+        topPanel.add(search, BorderLayout.CENTER);
+
+        main.add(topPanel, BorderLayout.PAGE_START);
 
         main.add(paintingComponent, BorderLayout.CENTER);
 
