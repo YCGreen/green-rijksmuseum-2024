@@ -57,7 +57,7 @@ public class RijksFrame extends JFrame  {
         next.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getPageField(search.getText(), 1);
+                getPageField(search, 1);
 
             }
         });
@@ -65,7 +65,7 @@ public class RijksFrame extends JFrame  {
         prev.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                getPageField(search.getText(), -1);
+                getPageField(search, -1);
             }
         });
 
@@ -90,12 +90,11 @@ public class RijksFrame extends JFrame  {
 
     }
 
-    private void getPageField(String search, int sign) {
-        if(search == null) {
+    private void getPageField(JTextField search, int sign) {
+        if (search.getText().isEmpty()) {
             getPage(currPage += sign);
-        }
-        else {
-            getField(search, currPageQuery += sign);
+        } else {
+            getField(search.getText(), currPageQuery += sign);
         }
     }
 
