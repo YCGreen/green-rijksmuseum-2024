@@ -1,5 +1,7 @@
 package green.rijks.json;
 
+import java.net.URL;
+
 public class WebImage {
     public String guid;
     public int offsetPercentageX;
